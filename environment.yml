@@ -1,0 +1,31 @@
+name: spider
+channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/pro
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - defaults
+dependencies:
+  - brotli-python=1.0.9=py38h313beb8_8
+  - ca-certificates=2025.2.25=hca03da5_0
+  - certifi=2024.8.30=py38hca03da5_0
+  - charset-normalizer=3.3.2=pyhd3eb1b0_0
+  - idna=3.7=py38hca03da5_0
+  - libcxx=17.0.6=he5c5206_4
+  - libffi=3.4.4=hca03da5_1
+  - ncurses=6.4=h313beb8_0
+  - openssl=3.0.16=h02f6b3c_0
+  - pip=24.2=py38hca03da5_0
+  - pysocks=1.7.1=py38hca03da5_0
+  - python=3.8.20=hb885b13_0
+  - readline=8.2=h1a28f6b_0
+  - requests=2.32.3=py38hca03da5_0
+  - setuptools=75.1.0=py38hca03da5_0
+  - sqlite=3.45.3=h80987f9_0
+  - tk=8.6.14=h6ba3021_1
+  - urllib3=2.2.3=py38hca03da5_0
+  - wheel=0.44.0=py38hca03da5_0
+  - xz=5.6.4=h80987f9_1
+  - yaml=0.2.5=h1a28f6b_0
+  - zlib=1.2.13=h18a0788_1
