@@ -1,10 +1,11 @@
 # -*- coding:utf8 -*-
-import requests
 import json
 import time
 import os
 from datetime import datetime
 import logging
+from router_monitor import RouterMonitor
+from feishu_notifier import FeishuNotifier
 
 # 配置日志
 logging.basicConfig(
@@ -19,127 +20,6 @@ logging.basicConfig(
 # 配置文件路径
 CONFIG_FILE = 'router_config.json'
 WAN_DATA_FILE = 'wan_status_data.json'
-
-
-def encrypt_pwd(password):  # 加密提交后的密码，可以把自己的密码提交到这个方法，再跟TP-LINK页面中实际提交的密码值做比对
-    input1 = "RDpbLfCPsJZ7fiv"
-    input3 = "yLwVl0zKqws7LgKPRQ84Mdt708T1qQ3Ha7xv3H7NyU84p21BriUWBU43odz3iP4rBL3cD02KZciXTysVXiV8ngg6vL48rPJyAUw0HurW20xqxv9aYb4M9wK1Ae0wlro510qXeU07kV57fQMc8L6aLgMLwygtc0F10a0Dg70TOoouyFhdysuRMO51yY5ZlOZZLEal1h0t9YQW0Ko7oBwmCAHoic4HYbUyVeU3sfQ1xtXcPcf1aT303wAQhv66qzW"
-    len1 = len(input1)
-    len2 = len(password)
-    dictionary = input3
-    lenDict = len(dictionary)
-    output = ''
-    if len1 > len2:
-        length = len1
-    else:
-        length = len2
-    index = 0
-    while index < length:
-        # 十六进制数 0xBB 的十进制为 187
-        cl = 187
-        cr = 187
-        if index >= len1:
-            # ord() 函数返回字符的整数表示
-            cr = ord(password[index])
-        elif index >= len2:
-            cl = ord(input1[index])
-        else:
-            cl = ord(input1[index])
-            cr = ord(password[index])
-        index += 1
-        # chr() 函数返回整数对应的字符
-        output = output + chr(ord(dictionary[cl ^ cr]) % lenDict)
-    return output
-
-
-def login(password='', encrypt_password=None):  # 提交登录请求的方法
-    if not encrypt_password:
-        encrypt_password = encrypt_pwd(password)
-    # encrypt_password = encrypt_pwd(password)
-    url = 'http://192.168.1.1/'
-    headers = {'Content-Type': 'application/json; charset=UTF-8'}
-    payload = '{"method":"do","login":{"password":"%s"}}' % encrypt_password
-    response = requests.post(url, data=payload, headers=headers)
-    response_body = json.loads(response.text)
-    return response_body
-
-
-def get_all_host(encrypt_password=None):  # 获取所有主机信息
-    stok = login(encrypt_password=encrypt_password).get('stok')
-    payload = '{"hosts_info":{"table":"host_info"},"method":"get"}'
-    headers = {'Content-Type': 'application/json; charset=UTF-8'}
-    url = '%sstok=%s/ds' % ('http://192.168.1.1/', stok)
-    response = requests.post(url, data=payload, headers=headers)
-    return response.text
-
-
-def get_wan_status_with_auth():
-    """获取WAN状态，带智能身份验证"""
-    config = load_config()
-
-    def try_get_wan_status(host, stok):
-        """尝试使用给定的stok获取WAN状态"""
-        payload = '{"network":{"name":["wan_status"]},"method":"get"}'
-        headers = {'Content-Type': 'application/json; charset=UTF-8'}
-        url = f'http://{host}/stok={stok}/ds'
-
-        try:
-            response = requests.post(
-                url, data=payload, headers=headers, timeout=10)
-            response_data = json.loads(response.text)
-            return response_data
-        except Exception as e:
-            logging.error(f"请求WAN状态失败: {e}")
-            return None
-
-    # 如果有保存的stok，先尝试使用
-    if config.get('stok'):
-        logging.info("尝试使用保存的stok获取WAN状态")
-        response_data = try_get_wan_status(config['host'], config['stok'])
-
-        if response_data and response_data.get('error_code') != -40401:
-            # stok有效，返回数据
-            return response_data
-        else:
-            logging.warning("保存的stok已失效，需要重新登录")
-
-    # stok无效或不存在，重新登录
-    logging.info("正在重新登录...")
-    try:
-        if not config.get('encrypt_password'):
-            if not config.get('password'):
-                logging.error("配置中没有 WIFI 密码，无法登录")
-                return None
-            config['encrypt_password'] = encrypt_pwd(config['password'])
-        login_response = login(encrypt_password=config['encrypt_password'])
-        if login_response and 'stok' in login_response:
-            new_stok = login_response['stok']
-            logging.info("重新登录成功")
-
-            # 更新配置
-            config['stok'] = new_stok
-            config['last_login_time'] = datetime.now().isoformat()
-            save_config(config)
-
-            # 使用新stok获取WAN状态
-            response_data = try_get_wan_status(config['host'], new_stok)
-            return response_data
-        else:
-            logging.error("登录失败")
-            return None
-    except Exception as e:
-        logging.error(f"登录过程中发生错误: {e}")
-        return None
-
-
-def get_wan_status(encrypt_password):
-    """保持向后兼容的函数"""
-    stok = login(encrypt_password=encrypt_password).get('stok')
-    payload = '{"network":{"name":["wan_status"]},"method":"get"}'
-    headers = {'Content-Type': 'application/json; charset=UTF-8'}
-    url = '%sstok=%s/ds' % ('http://192.168.1.1/', stok)
-    response = requests.post(url, data=payload, headers=headers)
-    return response.text
 
 
 def load_config():
@@ -192,24 +72,73 @@ def save_wan_data(data):
 
 
 def monitor_wan_status():
-    """监控WAN状态的主函数"""
+    """监控WAN状态的主函数，当IP变化时发送飞书通知"""
     logging.info("开始监控WAN状态，每分钟获取一次数据...")
+
+    # 初始化路由器监控器
+    config = load_config()
+    if not config:
+        logging.error("无法加载配置文件，程序退出")
+        return
+
+    router = RouterMonitor(config.get('host', '192.168.1.1'))
+
+    # 初始化飞书通知器
+    feishu_webhook = config.get('feishu_webhook_url')
+    feishu_secret = config.get('feishu_secret')
+
+    feishu_notifier = None
+    if feishu_webhook and feishu_secret:
+        feishu_notifier = FeishuNotifier(feishu_webhook, feishu_secret)
+        logging.info("飞书通知器已初始化")
+    else:
+        logging.warning("飞书配置不完整，将不会发送通知")
+
+    last_ip = None  # 记录上次的IP地址
+    startup_notification_sent = False  # 记录是否已发送启动通知
 
     while True:
         try:
             logging.info("正在获取WAN状态...")
-            wan_data = get_wan_status_with_auth()
+            wan_data = router.get_wan_status_with_auth(config)
 
             if wan_data:
                 # 保存数据到文件
                 save_wan_data(wan_data)
 
+                # 提取当前IP地址
+                current_ip = router.extract_wan_ip(wan_data)
+
+                if current_ip:
+                    logging.info(f"当前WAN口IP: {current_ip}")
+
+                    # 发送启动通知（仅第一次）
+                    if not startup_notification_sent and feishu_notifier:
+                        feishu_notifier.send_startup_notification(current_ip)
+                        startup_notification_sent = True
+
+                    # 检查IP是否发生变化
+                    if last_ip is not None and last_ip != current_ip:
+                        logging.info(f"检测到IP变化: {last_ip} -> {current_ip}")
+
+                        # 发送飞书通知
+                        if feishu_notifier:
+                            feishu_notifier.send_ip_change_notification(
+                                last_ip, current_ip)
+
+                    # 更新上次IP
+                    last_ip = current_ip
+
+                    # 更新配置文件（保存最新的stok等信息）
+                    save_config(config)
+                else:
+                    logging.warning("无法提取WAN口IP地址")
+
                 # 记录关键信息
                 if wan_data.get('network') and wan_data['network'].get('wan_status'):
                     wan_status = wan_data['network']['wan_status']
                     proto = wan_status.get('proto', 'unknown')
-                    ipaddr = wan_status.get('ipaddr', 'unknown')
-                    logging.info(f"WAN状态: {proto}, IP: {ipaddr}")
+                    logging.info(f"WAN状态: {proto}")
                 else:
                     logging.warning("WAN状态数据格式异常")
             else:
