@@ -1,0 +1,13 @@
+[Unit]
+Description=tplink host spider start service
+After=multi-user.target
+[Service]
+Type=oneshot
+# User=root
+RemainAfterExit=yes
+ExecStart=/path/to/start_monitor.sh start
+ExecStop=/path/to/start_monitor.sh stop
+Restart=on-failure
+WorkingDirectory=/path/to/tplink-host-spider
+[Install]
+WantedBy=multi-user.target
