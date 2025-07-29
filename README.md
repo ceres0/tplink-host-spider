@@ -41,6 +41,7 @@
 ```
 tplink-host-spider/
 ├── src/                          # 源代码目录
+│   ├── main.py                   # 🆕 模块化主程序
 │   ├── core/                     # 核心功能模块
 │   │   ├── router_monitor.py     # 路由器监控核心逻辑
 │   │   └── monitor_service.py    # 监控服务整合
@@ -62,7 +63,6 @@ tplink-host-spider/
 │   └── wan_status_data.json     # WAN状态历史数据
 ├── logs/                         # 日志文件
 │   └── router_monitor.log       # 运行日志
-├── main.py                       # 🆕 模块化主程序
 ├── hosts                         # 🆕 动态hosts文件
 ├── router_config.json            # 主配置文件
 ├── router_config.json.example    # 配置示例
@@ -184,7 +184,7 @@ python tests/test_hosts.py
 python tests/test_monitor.py
 
 # 🆕 运行主程序（模块化版本）
-python main.py
+python src/main.py
 ```
 
 ### 5. 后台运行（推荐）
