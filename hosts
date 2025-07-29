@@ -1,0 +1,13 @@
+# Auto-generated hosts file
+# Created at: 2025-07-29T12:25:51.191582
+# This file is automatically updated by router monitor
+
+127.0.0.1    localhost
+::1          localhost
+
+# Dynamic WAN IP entries (auto-updated)
+# Updated at: 2025-07-29T12:25:51.191839
+# Updated at: 2025-07-29T12:27:17.145855
+# Updated at: 2025-07-29T12:34:56.010674
+10.96.136.247    lab305-3090-duo
+10.96.136.247    Nvidia-Jetson-Orin-NX-1
