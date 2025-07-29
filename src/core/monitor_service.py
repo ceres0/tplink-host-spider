@@ -7,11 +7,11 @@ import logging
 import time
 from typing import Optional
 
-from src.core.router_monitor import RouterMonitor
-from src.notifiers.feishu_notifier import FeishuNotifier
-from src.managers.hosts_manager import HostsManager, GitManager
-from src.utils.config_manager import ConfigManager
-from src.utils.data_manager import DataManager
+from core.router_monitor import RouterMonitor
+from notifiers.feishu_notifier import FeishuNotifier
+from managers.hosts_manager import HostsManager, GitManager
+from utils.config_manager import ConfigManager
+from utils.data_manager import DataManager
 
 
 class RouterMonitorService:

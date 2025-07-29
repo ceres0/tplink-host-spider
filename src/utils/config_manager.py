@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 class ConfigManager:
     """配置管理器"""
     
-    def __init__(self, config_file: str = 'router_config.json'):
+    def __init__(self, config_file: str = 'config/router_config.json'):
         self.config_file = config_file
         self.config = {}
         

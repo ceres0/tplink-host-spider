@@ -10,7 +10,7 @@ import logging
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src.core.monitor_service import RouterMonitorService
+from core.monitor_service import RouterMonitorService
 
 # 配置日志
 logging.basicConfig(

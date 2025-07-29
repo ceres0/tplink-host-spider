@@ -5,7 +5,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-PYTHON_SCRIPT="$PROJECT_DIR/main_new.py"
+PYTHON_SCRIPT="$PROJECT_DIR/src/main.py"
 PID_FILE="$PROJECT_DIR/monitor.pid"
 LOG_FILE="$PROJECT_DIR/logs/router_monitor.log"
 
