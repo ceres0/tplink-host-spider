@@ -5,8 +5,8 @@ After=multi-user.target
 Type=oneshot
 # User=root
 RemainAfterExit=yes
-ExecStart=/path/to/start_monitor.sh start
-ExecStop=/path/to/start_monitor.sh stop
+ExecStart=/path/to/tplink-host-spider/scripts/start_monitor.sh start
+ExecStop=/path/to/tplink-host-spider/scripts/start_monitor.sh stop
 Restart=on-failure
 WorkingDirectory=/path/to/tplink-host-spider
 [Install]
