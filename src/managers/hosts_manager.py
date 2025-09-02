@@ -3,6 +3,7 @@ import os
 import logging
 import subprocess
 from datetime import datetime
+from utils.path_utils import get_absolute_path, ensure_dir_exists
 
 
 class HostsManager:
@@ -11,9 +12,9 @@ class HostsManager:
         初始化hosts文件管理器
         
         Args:
-            hosts_file_path (str): hosts文件路径，默认为当前目录下的hosts文件
+            hosts_file_path (str): hosts文件路径，默认为项目根目录下的hosts文件
         """
-        self.hosts_file_path = hosts_file_path
+        self.hosts_file_path = get_absolute_path(hosts_file_path)
         self.current_ip = None
         
     def create_hosts_file(self, domain_list=None):
@@ -32,6 +33,9 @@ class HostsManager:
             ]
         
         try:
+            # 确保文件所在目录存在
+            ensure_dir_exists(self.hosts_file_path)
+            
             with open(self.hosts_file_path, 'w', encoding='utf-8') as f:
                 f.write("# Auto-generated hosts file\n")
                 f.write(f"# Created at: {datetime.now().isoformat()}\n")
@@ -165,9 +169,9 @@ class GitManager:
         初始化Git管理器
         
         Args:
-            repo_path (str): Git仓库路径，默认为当前目录
+            repo_path (str): Git仓库路径，默认为项目根目录
         """
-        self.repo_path = repo_path
+        self.repo_path = get_absolute_path(repo_path)
     
     def is_git_repo(self):
         """检查是否为Git仓库"""

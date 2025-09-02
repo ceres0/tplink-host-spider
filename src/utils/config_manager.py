@@ -7,13 +7,14 @@ import json
 import os
 import logging
 from typing import Dict, Any, Optional
+from utils.path_utils import get_absolute_path, ensure_dir_exists
 
 
 class ConfigManager:
     """配置管理器"""
     
     def __init__(self, config_file: str = 'config/router_config.json'):
-        self.config_file = config_file
+        self.config_file = get_absolute_path(config_file)
         self.config = {}
         
     def load_config(self) -> Optional[Dict[str, Any]]:
@@ -34,7 +35,7 @@ class ConfigManager:
         """保存配置到文件"""
         try:
             # 确保配置目录存在
-            os.makedirs(os.path.dirname(self.config_file), exist_ok=True)
+            ensure_dir_exists(self.config_file)
             
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=4, ensure_ascii=False)

@@ -8,19 +8,20 @@ import os
 import logging
 from datetime import datetime
 from typing import Dict, Any, List
+from utils.path_utils import get_absolute_path, ensure_dir_exists
 
 
 class DataManager:
     """数据管理器"""
     
     def __init__(self, data_file: str = 'data/wan_status_data.json'):
-        self.data_file = data_file
+        self.data_file = get_absolute_path(data_file)
         
     def save_wan_data(self, data: Dict[str, Any]) -> bool:
         """保存WAN口数据到文件"""
         try:
             # 确保数据目录存在
-            os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
+            ensure_dir_exists(self.data_file)
             
             # 读取现有数据
             wan_history = []

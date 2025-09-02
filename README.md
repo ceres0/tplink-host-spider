@@ -2,6 +2,13 @@
 
 > 本程序为校园网内动态分配 IP 导致 WAN 口状态频繁变化而编写的监控脚本，旨在自动获取和记录路由器的 WAN 口状态信息，并在 IP 变化时发送飞书通知。
 
+## 🆕 v2.1 更新说明
+
+- 🔧 **路径管理优化**: 新增统一的路径工具，解决不同目录运行的路径问题
+- 🚀 **SystemD集成**: 完善的systemd服务配置，支持系统级服务管理
+- 📝 **启动脚本优化**: 改进的进程管理和停止逻辑，支持优雅停止
+- 🔍 **状态监控增强**: 更详细的服务状态检查和进程监控
+
 ## 🆕 v2.0 更新说明
 
 - 📦 **模块化重构**: 采用面向对象设计，将功能分离为独立模块
@@ -28,6 +35,9 @@
 11. **模块化架构**: 清晰的项目结构，便于维护和扩展
 12. **配置管理**: 统一的配置管理系统，支持配置验证
 13. **综合测试**: 完整的测试套件确保功能正常
+14. **🆕 路径管理**: 智能路径解析，支持从任意目录运行程序
+15. **🆕 SystemD集成**: 完整的系统服务支持，开机自启和自动重启
+16. **🆕 进程管理**: 优化的启动脚本，支持优雅启停和状态监控
 
 ## 环境要求
 
@@ -47,7 +57,8 @@ tplink-host-spider/
 │   │   └── monitor_service.py    # 监控服务整合
 │   ├── utils/                    # 工具模块
 │   │   ├── config_manager.py     # 配置管理
-│   │   └── data_manager.py       # 数据管理
+│   │   ├── data_manager.py       # 数据管理
+│   │   └── path_utils.py         # 🆕 路径工具，解决相对路径问题
 │   ├── notifiers/                # 通知模块
 │   │   └── feishu_notifier.py    # 飞书通知
 │   └── managers/                 # 管理模块
@@ -56,14 +67,16 @@ tplink-host-spider/
 │   ├── test_integration.py       # 综合测试
 │   ├── test_hosts.py            # hosts功能测试
 │   ├── test_monitor.py          # 监控功能测试
-│   └── demo_hosts.py            # hosts功能演示
+│   ├── demo_hosts.py            # hosts功能演示
+│   └── test_paths.py                 # 🆕 路径测试脚本
 ├── scripts/                      # 脚本文件
-│   └── start_monitor.sh         # 启动脚本
+│   └── start_monitor.sh         # 🆕 优化的启动脚本，支持优雅启停
 ├── data/                         # 数据文件
 │   └── wan_status_data.json     # WAN状态历史数据
 ├── logs/                         # 日志文件
 │   └── router_monitor.log       # 运行日志
 ├── hosts                         # 🆕 动态hosts文件
+├── tplink-host-spider.service    # 🆕 SystemD服务配置文件
 ├── router_config.json            # 主配置文件
 ├── router_config.json.example    # 配置示例
 └── requirements.txt              # Python依赖
@@ -99,6 +112,7 @@ pip install -r requirements.txt
 #### 工具模块 (src/utils/)
 - `config_manager.py`: 配置文件的加载、保存、验证
 - `data_manager.py`: WAN状态数据的存储和历史管理
+- `path_utils.py`: 🆕 路径工具，提供项目根目录定位和绝对路径转换
 
 #### 通知模块 (src/notifiers/)
 - `feishu_notifier.py`: 飞书机器人通知功能
@@ -187,7 +201,9 @@ python tests/test_monitor.py
 python src/main.py
 ```
 
-### 5. 后台运行（推荐）
+### 5. 后台运行
+
+#### 方式一：使用启动脚本（推荐开发测试）
 
 ```bash
 # 启动监控
@@ -205,6 +221,43 @@ python src/main.py
 # 查看实时日志
 ./scripts/start_monitor.sh logs
 ```
+
+#### 🆕 方式二：使用SystemD服务（推荐生产环境）
+
+```bash
+# 安装服务文件
+sudo cp tplink-host-spider.service /etc/systemd/system/
+
+# 重新加载systemd配置
+sudo systemctl daemon-reload
+
+# 启用开机自启
+sudo systemctl enable tplink-host-spider
+
+# 启动服务
+sudo systemctl start tplink-host-spider
+
+# 查看服务状态
+systemctl status tplink-host-spider
+
+# 查看服务日志
+sudo journalctl -u tplink-host-spider -f
+
+# 停止服务
+sudo systemctl stop tplink-host-spider
+
+# 重启服务
+sudo systemctl restart tplink-host-spider
+```
+
+**SystemD服务的优势**：
+- ✅ **开机自启**: 系统启动时自动启动服务
+- ✅ **自动重启**: 程序异常退出时自动重启
+- ✅ **日志集成**: 日志统一管理到systemd journal
+- ✅ **资源监控**: 可以监控CPU、内存使用情况
+- ✅ **权限管理**: 以指定用户身份运行，提高安全性
+
+更多详细配置请参考：[SystemD部署指南](SYSTEMD_GUIDE.md)
 
 ## 🆕 新功能说明
 
@@ -395,10 +448,37 @@ python src/main.py
 2. 确认 requests 库已正确安装
 3. 检查 Python 版本是否为 3.8+
 4. 🆕 运行 `python tests/test_integration.py` 进行全面功能测试
+5. 🆕 运行 `python tests/test_paths.py` 测试路径解析是否正确
+
+### 🆕 路径和部署问题
+
+1. **路径问题**: 程序现在支持从任意目录运行，如果遇到路径错误：
+   - 运行路径测试：`python test_paths.py`
+   - 检查符号链接是否正确
+   - 确保所有相对路径都能正确解析到项目根目录
+
+2. **SystemD服务问题**: 如果systemd服务启动失败：
+   - 检查service文件路径是否正确：`/etc/systemd/system/tplink-host-spider.service`
+   - 确认conda环境路径配置正确
+   - 查看详细错误日志：`sudo journalctl -u tplink-host-spider -f`
+   - 验证文件权限和用户配置
+
+3. **启动脚本问题**: 如果启动脚本无法正确停止：
+   - 脚本已优化进程管理逻辑，支持优雅停止
+   - 使用 `./scripts/start_monitor.sh status` 检查详细状态
+   - 脚本会自动清理遗留进程
 
 ---
 
 ## 更新日志
+
+### v2.1.0 (2025-09-02)
+- 🔧 **路径管理优化**: 新增 `path_utils.py`，解决不同目录运行的路径问题
+- 🚀 **SystemD集成**: 完善的systemd服务配置，支持开机自启和自动重启
+- 📝 **启动脚本优化**: 改进的进程管理逻辑，支持优雅停止和状态监控
+- 🔍 **状态监控增强**: 更详细的服务状态检查，包括进程树监控
+- 📖 **部署文档**: 新增 `SYSTEMD_GUIDE.md` 和路径测试脚本
+- 🛠️ **错误修复**: 修复符号链接导致的路径解析问题
 
 ### v2.0.0 (2025-07-29)
 - 🔄 **重大重构**: 采用模块化架构设计

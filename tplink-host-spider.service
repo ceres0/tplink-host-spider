@@ -1,13 +1,26 @@
 [Unit]
-Description=tplink host spider start service
-After=multi-user.target
+Description=TP-Link Host Spider WAN Monitor Service
+After=multi-user.target network.target
+
 [Service]
-Type=oneshot
-# User=root
-RemainAfterExit=yes
-ExecStart=/path/to/tplink-host-spider/scripts/start_monitor.sh start
-ExecStop=/path/to/tplink-host-spider/scripts/start_monitor.sh stop
-Restart=on-failure
+Type=simple
+User=YOUR_USERNAME
+Group=YOUR_USERNAME
+Environment=PATH=/home/YOUR_USERNAME/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=CONDA_DEFAULT_ENV=YOUR_CONDA_ENV
+Environment=CONDA_PREFIX=/home/YOUR_USERNAME/miniconda3/envs/YOUR_CONDA_ENV
 WorkingDirectory=/path/to/tplink-host-spider
+ExecStart=/home/YOUR_USERNAME/miniconda3/bin/conda run -n YOUR_CONDA_ENV python /path/to/tplink-host-spider/src/main.py
+ExecStop=/bin/kill -TERM $MAINPID
+RemainAfterExit=no
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tplink-spider
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
 [Install]
 WantedBy=multi-user.target

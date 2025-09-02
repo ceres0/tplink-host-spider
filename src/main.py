@@ -11,13 +11,17 @@ import logging
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from core.monitor_service import RouterMonitorService
+from utils.path_utils import get_absolute_path, ensure_dir_exists
 
 # 配置日志
+log_file = get_absolute_path('logs/router_monitor.log')
+ensure_dir_exists(log_file)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('logs/router_monitor.log'),
+        logging.FileHandler(log_file),
         logging.StreamHandler()
     ]
 )
@@ -25,9 +29,6 @@ logging.basicConfig(
 def main():
     """主函数"""
     try:
-        # 确保日志目录存在
-        os.makedirs('logs', exist_ok=True)
-        
         # 创建监控服务
         monitor_service = RouterMonitorService()
         
