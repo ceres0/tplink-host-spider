@@ -28,5 +28,6 @@
 # Updated at: 2025-11-13T10:42:49.476943
 # Updated at: 2025-11-13T11:00:33.644725
 # Updated at: 2025-11-14T08:54:49.858254
-0.0.0.0    lab305-3090-duo
-0.0.0.0    Nvidia-Jetson-Orin-NX-1
+# Updated at: 2025-11-14T08:55:56.664878
+10.96.98.139    lab305-3090-duo
+10.96.98.139    Nvidia-Jetson-Orin-NX-1
