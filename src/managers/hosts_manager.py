@@ -95,22 +95,12 @@ class HostsManager:
             in_dynamic_section = False
             
             for line in lines:
-                stripped_line = line.strip()
-                
                 # 标记动态IP部分的开始
                 if "# Dynamic WAN IP entries" in line:
                     in_dynamic_section = True
                     updated_content.append(line)
-                    continue
-                
-                # 如果在动态部分，跳过旧的IP条目和旧的更新时间
-                if in_dynamic_section:
-                    # 跳过更新时间注释
-                    if stripped_line.startswith("# Updated at:"):
-                        continue
-                    # 跳过旧的IP条目
-                    if any(domain in line for domain in domain_list):
-                        continue
+                    # 找到动态部分后，清空该部分的旧内容，直接跳出循环
+                    break
                 
                 updated_content.append(line)
             
