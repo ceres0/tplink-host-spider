@@ -78,6 +78,7 @@ class HostsManager:
         
         # 如果IP没有变化，不需要更新
         if self.current_ip == new_ip:
+            logging.info(f"IP地址未变化({new_ip})，跳过更新hosts文件")
             return False
             
         try:
@@ -102,9 +103,14 @@ class HostsManager:
                     updated_content.append(line)
                     continue
                 
-                # 如果在动态部分，跳过旧的IP条目
-                if in_dynamic_section and any(domain in line for domain in domain_list):
-                    continue
+                # 如果在动态部分，跳过旧的IP条目和旧的更新时间
+                if in_dynamic_section:
+                    # 跳过更新时间注释
+                    if stripped_line.startswith("# Updated at:"):
+                        continue
+                    # 跳过旧的IP条目
+                    if any(domain in line for domain in domain_list):
+                        continue
                 
                 updated_content.append(line)
             
@@ -114,7 +120,7 @@ class HostsManager:
                     "\n# Dynamic WAN IP entries (auto-updated)\n"
                 ])
             
-            # 添加新的IP条目
+            # 添加新的更新时间和IP条目
             updated_content.append(f"# Updated at: {datetime.now().isoformat()}\n")
             for domain in domain_list:
                 updated_content.append(f"{new_ip}    {domain}\n")
