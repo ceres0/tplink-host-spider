@@ -6,7 +6,7 @@
 ::1          localhost
 
 # Dynamic WAN IP entries (auto-updated)
-# Updated at: 2026-03-26T11:23:06.181581
-10.96.60.241    3090-duo.lab305.server
-10.96.60.241    2080ti-duo.lab305.server
-10.96.60.241    Nvidia-Jetson-Orin-NX-1.board.lab305.server
+# Updated at: 2026-04-05T11:40:16.891370
+10.96.241.92    3090-duo.lab305.server
+10.96.241.92    2080ti-duo.lab305.server
+10.96.241.92    Nvidia-Jetson-Orin-NX-1.board.lab305.server
